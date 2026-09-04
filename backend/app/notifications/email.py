@@ -13,7 +13,7 @@ def send_email(to: str, subject: str, html: str) -> None:
 
     msg = MIMEMultipart("alternative")
     msg["Subject"] = subject
-    msg["From"] = settings.smtp_from_email
+    msg["From"] = f"QueueLess <{settings.smtp_from_email}>"
     msg["To"] = to
     msg.attach(MIMEText(html, "html"))
 
