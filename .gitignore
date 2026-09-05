@@ -1,5 +1,21 @@
+# Environment variables
 .env
+.env.local
 backend/.env
 frontend/.env
-venv/
+*.env
+
+# Python
+backend/venv/
 __pycache__/
+*.pyc
+
+# Node
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
