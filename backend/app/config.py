@@ -23,3 +23,4 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+print(f"DEBUG: SUPABASE_URL = {repr(settings.supabase_url)}")
