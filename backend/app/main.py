@@ -14,9 +14,18 @@ app = FastAPI(
     version="0.1.0",
 )
 
+# settings.frontend_url can be a single URL or a comma-separated list of URLs
+# (e.g. "http://localhost:5174,https://your-production-frontend.com").
+# This lets local dev and production both work without hardcoding origins here.
+allowed_origins = [
+    origin.strip()
+    for origin in settings.frontend_url.split(",")
+    if origin.strip()
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[settings.frontend_url],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
