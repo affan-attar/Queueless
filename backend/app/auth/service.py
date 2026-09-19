@@ -3,6 +3,7 @@ import time
 from fastapi import HTTPException, status
 
 from app.database import get_anon_client, get_service_client
+from app.config import settings
 from app.auth.schemas import RegisterRequest, LoginRequest, UserRole
 
 
@@ -110,9 +111,16 @@ def login_user(payload: LoginRequest) -> dict:
 def request_password_reset(email: str) -> None:
     anon = get_anon_client()
     try:
-        anon.auth.reset_password_for_email(email)
-    except Exception:
-        pass
+        anon.auth.reset_password_for_email(
+            email,
+            {
+                "redirect_to": f"{settings.frontend_url}/reset-password",
+            },
+        )
+    except Exception as exc:
+        # Log the real error server-side for debugging, but never leak
+        # whether the email exists to the client (handled in the router).
+        print(f"[request_password_reset] failed for {email!r}: {exc!r}")
 
 
 def get_user_email(user_id: str) -> str | None:
