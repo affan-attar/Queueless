@@ -118,8 +118,6 @@ def request_password_reset(email: str) -> None:
             },
         )
     except Exception as exc:
-        # Log the real error server-side for debugging, but never leak
-        # whether the email exists to the client (handled in the router).
         print(f"[request_password_reset] failed for {email!r}: {exc!r}")
 
 

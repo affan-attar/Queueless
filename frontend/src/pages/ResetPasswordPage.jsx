@@ -1,15 +1,15 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { Eye, EyeOff } from 'lucide-react'
 import AuthShell from '../components/AuthShell'
-import { supabase } from '../lib/supabase'
+import { supabase } from '../api/supabase'
 
 export default function ResetPasswordPage() {
   const navigate = useNavigate()
+  const [confirmed, setConfirmed] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [serverError, setServerError] = useState('')
-  const [ready, setReady] = useState(false)
   const [linkInvalid, setLinkInvalid] = useState(false)
   const [done, setDone] = useState(false)
   const {
@@ -19,35 +19,20 @@ export default function ResetPasswordPage() {
     formState: { errors, isSubmitting },
   } = useForm()
 
-  useEffect(() => {
-    // Supabase parses the recovery token from the URL hash on load and
-    // fires PASSWORD_RECOVERY once the session is established.
-    const { data: listener } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'PASSWORD_RECOVERY') {
-        setReady(true)
-      }
-    })
+  async function handleContinue() {
+    setServerError('')
+    // Supabase reads the recovery token from the URL hash when getSession
+    // is called. Doing this only on explicit click (not on page load)
+    // avoids automated link-scanners burning the one-time token.
+    const { data, error } = await supabase.auth.getSession()
 
-    // In case the event already fired before we subscribed, also check
-    // for an existing session directly.
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) {
-        setReady(true)
-      }
-    })
-
-    const timeout = setTimeout(() => {
-      setReady((r) => {
-        if (!r) setLinkInvalid(true)
-        return r
-      })
-    }, 4000)
-
-    return () => {
-      listener.subscription.unsubscribe()
-      clearTimeout(timeout)
+    if (error || !data.session) {
+      setLinkInvalid(true)
+      return
     }
-  }, [])
+
+    setConfirmed(true)
+  }
 
   async function onSubmit({ password }) {
     setServerError('')
@@ -93,6 +78,30 @@ export default function ResetPasswordPage() {
     )
   }
 
+  if (!confirmed) {
+    return (
+      <AuthShell
+        eyebrow="Reset password"
+        title="Reset your password"
+        subtitle="Click continue to set a new password for your account."
+      >
+        {serverError && (
+          <div className="mb-4 rounded-lg bg-signal-stop/10 border border-signal-stop/30 px-3.5 py-2.5 text-sm text-signal-stop">
+            {serverError}
+          </div>
+        )}
+        <button type="button" onClick={handleContinue} className="btn-primary w-full">
+          Continue
+        </button>
+        <p className="mt-6 text-center text-sm text-slate-500">
+          <Link to="/login" className="font-medium text-ink-900 hover:underline">
+            Back to login
+          </Link>
+        </p>
+      </AuthShell>
+    )
+  }
+
   return (
     <AuthShell
       eyebrow="Reset password"
@@ -114,7 +123,6 @@ export default function ResetPasswordPage() {
               type={showPassword ? 'text' : 'password'}
               className="field-input pr-10"
               placeholder="••••••••"
-              disabled={!ready}
               {...register('password', {
                 required: 'Password is required',
                 minLength: { value: 8, message: 'Password must be at least 8 characters' },
@@ -141,7 +149,6 @@ export default function ResetPasswordPage() {
             type={showPassword ? 'text' : 'password'}
             className="field-input"
             placeholder="••••••••"
-            disabled={!ready}
             {...register('confirm_password', {
               required: 'Please confirm your password',
               validate: (value) => value === watch('password') || 'Passwords do not match',
@@ -152,16 +159,10 @@ export default function ResetPasswordPage() {
           )}
         </div>
 
-        <button type="submit" disabled={isSubmitting || !ready} className="btn-primary w-full">
-          {!ready ? 'Verifying link…' : isSubmitting ? 'Updating…' : 'Update password'}
+        <button type="submit" disabled={isSubmitting} className="btn-primary w-full">
+          {isSubmitting ? 'Updating…' : 'Update password'}
         </button>
       </form>
-
-      <p className="mt-6 text-center text-sm text-slate-500">
-        <Link to="/login" className="font-medium text-ink-900 hover:underline">
-          Back to login
-        </Link>
-      </p>
     </AuthShell>
   )
 }
