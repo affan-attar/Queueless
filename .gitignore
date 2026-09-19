@@ -19,3 +19,5 @@ frontend/.vite/
 .DS_Store
 .vscode/
 .idea/
+__pycache__/
+*.pyc
