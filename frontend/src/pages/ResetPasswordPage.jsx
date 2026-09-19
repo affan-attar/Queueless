@@ -21,12 +21,37 @@ export default function ResetPasswordPage() {
 
   async function handleContinue() {
     setServerError('')
-    // Supabase reads the recovery token from the URL hash when getSession
-    // is called. Doing this only on explicit click (not on page load)
-    // avoids automated link-scanners burning the one-time token.
-    const { data, error } = await supabase.auth.getSession()
 
-    if (error || !data.session) {
+    // With detectSessionInUrl disabled, Supabase no longer auto-consumes
+    // the recovery token on page load. We parse it from the URL hash
+    // ourselves and only exchange it for a session on explicit click,
+    // which prevents automated link-scanners from burning the token
+    // before the user ever gets here.
+    const hash = window.location.hash.startsWith('#')
+      ? window.location.hash.slice(1)
+      : window.location.hash
+    const params = new URLSearchParams(hash)
+
+    const errorCode = params.get('error_code')
+    if (errorCode) {
+      setLinkInvalid(true)
+      return
+    }
+
+    const accessToken = params.get('access_token')
+    const refreshToken = params.get('refresh_token')
+
+    if (!accessToken || !refreshToken) {
+      setLinkInvalid(true)
+      return
+    }
+
+    const { error } = await supabase.auth.setSession({
+      access_token: accessToken,
+      refresh_token: refreshToken,
+    })
+
+    if (error) {
       setLinkInvalid(true)
       return
     }
