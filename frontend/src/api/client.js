@@ -32,6 +32,7 @@ export const authApi = {
   register: (payload) => api.post('/api/auth/register', payload),
   login: (payload) => api.post('/api/auth/login', payload),
   forgotPassword: (email) => api.post('/api/auth/forgot-password', { email }),
+  resetPassword: (payload) => api.post('/api/auth/reset-password', payload),
   changePassword: (payload) => api.post('/api/auth/change-password', payload),
   changeEmail: (payload) => api.patch('/api/auth/email', payload),
   me: () => api.get('/api/auth/me'),

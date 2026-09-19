@@ -6,6 +6,7 @@ from app.auth.schemas import (
     LoginRequest,
     TokenResponse,
     ForgotPasswordRequest,
+    ResetPasswordRequest,
     ChangePasswordRequest,
     ChangeEmailRequest,
 )
@@ -33,7 +34,17 @@ def login(payload: LoginRequest):
 @router.post("/forgot-password", status_code=status.HTTP_200_OK)
 def forgot_password(payload: ForgotPasswordRequest):
     service.request_password_reset(payload.email)
-    return {"message": "If that email exists, a reset link has been sent."}
+    return {"message": "If that email exists, a reset code has been sent."}
+
+
+@router.post("/reset-password", status_code=status.HTTP_200_OK)
+def reset_password(payload: ResetPasswordRequest):
+    service.confirm_password_reset(
+        email=payload.email,
+        code=payload.code,
+        new_password=payload.new_password,
+    )
+    return {"message": "Password updated successfully."}
 
 
 @router.post("/change-password", status_code=status.HTTP_200_OK)
