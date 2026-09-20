@@ -1,7 +1,9 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
+:root {
+  color-scheme: light dark;
+}
 @layer base {
   body {
     @apply bg-paper transition-colors dark:bg-ink-950;
