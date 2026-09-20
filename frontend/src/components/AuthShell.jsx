@@ -2,14 +2,14 @@ export default function AuthShell({ eyebrow, title, subtitle, children }) {
   return (
     <div className="grid min-h-screen grid-cols-1 lg:grid-cols-2">
       {/* Left: brand panel with signature split-flap token motif */}
-      <div className="relative hidden flex-col justify-between overflow-hidden bg-ink-900 p-10 text-paper lg:flex">
+      <div className="relative hidden flex-col justify-between overflow-hidden bg-slate-900 p-10 text-paper lg:flex">
         <div className="flex items-center gap-2">
           <div className="flap-digit h-9 w-9 text-lg">Q</div>
           <span className="font-display text-lg font-bold">QueueLess</span>
         </div>
 
         <div>
-          <p className="mb-3 font-mono text-sm uppercase tracking-widest text-amber-400">
+          <p className="mb-3 font-mono text-sm uppercase tracking-widest text-sky-400">
             Now Serving
           </p>
           <div className="mb-8 flex gap-2">
@@ -41,7 +41,7 @@ export default function AuthShell({ eyebrow, title, subtitle, children }) {
             <span className="font-display text-lg font-bold">QueueLess</span>
           </div>
           {eyebrow && (
-            <p className="mb-2 font-mono text-xs uppercase tracking-widest text-amber-500">
+            <p className="mb-2 font-mono text-xs uppercase tracking-widest text-sky-600">
               {eyebrow}
             </p>
           )}

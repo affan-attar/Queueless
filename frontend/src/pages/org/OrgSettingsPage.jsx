@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
-import { Building2, MapPin, Bell, Users, Plus, Trash2, Camera, UserCircle, Mail, KeyRound, CheckCircle2 } from 'lucide-react'
+import { Building2, MapPin, Bell, Users, Plus, Trash2, Camera, UserCircle, Mail, KeyRound, CheckCircle2, Moon } from 'lucide-react'
 import { organizationsApi } from '../../api/organizations'
 import { useAuth } from '../../context/AuthContext'
+import { useTheme } from '../../context/ThemeContext'
 import ChangeEmailModal from '../../components/ui/ChangeEmailModal'
 import ChangePasswordModal from '../../components/ui/ChangePasswordModal'
 
@@ -39,8 +40,22 @@ function initials(name = '') {
     .join('')
 }
 
+function SectionHeader({ icon: Icon, title }) {
+  return (
+    <div className="flex items-center gap-2.5">
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-500/10">
+        <Icon size={16} className="text-amber-600 dark:text-amber-400" />
+      </div>
+      <h2 className="font-display text-base font-semibold text-ink-900 dark:text-paper">
+        {title}
+      </h2>
+    </div>
+  )
+}
+
 export default function OrgSettingsPage() {
   const { user, setUser } = useAuth()
+  const { darkMode, setDarkMode } = useTheme()
   const [form, setForm] = useState(null)
   const [newStaffName, setNewStaffName] = useState('')
   const [newStaffRole, setNewStaffRole] = useState('')
@@ -51,6 +66,12 @@ export default function OrgSettingsPage() {
   const [showPasswordModal, setShowPasswordModal] = useState(false)
   const [currentEmail, setCurrentEmail] = useState(user?.email || '')
   const [toast, setToast] = useState('')
+
+  useEffect(() => {
+    if (user?.email) {
+      setCurrentEmail(user.email)
+    }
+  }, [user?.email])
 
   useEffect(() => {
     let cancelled = false
@@ -101,10 +122,6 @@ export default function OrgSettingsPage() {
   }
 
   function handleEmailChanged() {
-    // Email doesn't change instantly anymore — Supabase requires the user
-    // to confirm via links sent to both the old and new address first.
-    // We don't update currentEmail/localStorage here; the displayed email
-    // will reflect the change only after the user reloads post-confirmation.
     setShowEmailModal(false)
     setToast('Check your inbox — confirm the change from both your old and new email to finish updating.')
   }
@@ -159,47 +176,45 @@ export default function OrgSettingsPage() {
         </p>
       )}
 
-      <div className="card space-y-4 p-6">
-        <div className="flex items-center gap-2">
-          <UserCircle size={16} className="text-amber-500" />
-          <h2 className="font-display font-semibold text-ink-900 dark:text-paper">
-            Profile
-          </h2>
-        </div>
+      <div className="card space-y-5 p-6">
+        <SectionHeader icon={UserCircle} title="Profile" />
 
-        <div>
-          <label className="field-label">Name</label>
-          <input
-            className="field-input"
-            value={user?.full_name || ''}
-            disabled
-          />
-        </div>
-
-        <div>
-          <label className="field-label">
-            <span className="inline-flex items-center gap-1.5">
-              <Mail size={13} /> Email
-            </span>
-          </label>
-          <div className="flex flex-col gap-2 sm:flex-row">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label className="field-label">Name</label>
             <input
-              className="field-input flex-1"
-              value={currentEmail}
+              className="field-input"
+              value={user?.full_name || ''}
               disabled
             />
-            <button
-              type="button"
-              className="btn-secondary shrink-0"
-              onClick={() => setShowEmailModal(true)}
-            >
-              Change email
-            </button>
+          </div>
+
+          <div>
+            <label className="field-label">
+              <span className="inline-flex items-center gap-1.5">
+                <Mail size={13} /> Email
+              </span>
+            </label>
+            <div className="flex gap-2">
+              <input
+                className="field-input flex-1"
+                value={currentEmail}
+                placeholder={currentEmail ? undefined : 'Loading…'}
+                disabled
+              />
+              <button
+                type="button"
+                className="btn-secondary shrink-0"
+                onClick={() => setShowEmailModal(true)}
+              >
+                Change
+              </button>
+            </div>
           </div>
         </div>
 
-        <div className="border-t border-ink-900/10 pt-4 dark:border-paper/10">
-          <label className="field-label">
+        <div className="flex items-center justify-between border-t border-ink-900/10 pt-4 dark:border-paper/10">
+          <label className="field-label mb-0">
             <span className="inline-flex items-center gap-1.5">
               <KeyRound size={13} /> Password
             </span>
@@ -212,19 +227,36 @@ export default function OrgSettingsPage() {
             Change password
           </button>
         </div>
+
+        <div className="flex items-center justify-between border-t border-ink-900/10 pt-4 dark:border-paper/10">
+          <label className="field-label mb-0 flex items-center gap-2 text-sm font-medium text-ink-900 dark:text-paper">
+            <Moon size={15} className="text-amber-500" />
+            Dark mode
+          </label>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={darkMode}
+            onClick={() => setDarkMode(!darkMode)}
+            className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
+              darkMode ? 'bg-ink-900 dark:bg-slate-600' : 'bg-slate-300 dark:bg-slate-700'
+            }`}
+          >
+            <span
+              className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
+                darkMode ? 'translate-x-5' : 'translate-x-0.5'
+              }`}
+            />
+          </button>
+        </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="card space-y-5 p-6">
-          <div className="flex items-center gap-2">
-            <Building2 size={16} className="text-amber-500" />
-            <h2 className="font-display font-semibold text-ink-900 dark:text-paper">
-              Organization profile
-            </h2>
-          </div>
+          <SectionHeader icon={Building2} title="Organization profile" />
 
           <div className="flex items-center gap-4">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-ink-900 font-display text-xl font-semibold text-paper">
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-ink-900 font-display text-xl font-semibold text-paper">
               {initials(form.name) || '?'}
             </div>
             <button type="button" className="btn-secondary text-sm">
@@ -269,12 +301,7 @@ export default function OrgSettingsPage() {
         </div>
 
         <div className="card space-y-4 p-6">
-          <div className="flex items-center gap-2">
-            <Bell size={16} className="text-amber-500" />
-            <h2 className="font-display font-semibold text-ink-900 dark:text-paper">
-              Notification threshold
-            </h2>
-          </div>
+          <SectionHeader icon={Bell} title="Notification threshold" />
           <p className="text-sm text-slate-500">
             Notify customers when this many people are ahead of them in the queue.
           </p>
@@ -292,12 +319,7 @@ export default function OrgSettingsPage() {
         </div>
 
         <div className="card space-y-4 p-6">
-          <div className="flex items-center gap-2">
-            <Users size={16} className="text-amber-500" />
-            <h2 className="font-display font-semibold text-ink-900 dark:text-paper">
-              Staff assignments
-            </h2>
-          </div>
+          <SectionHeader icon={Users} title="Staff assignments" />
 
           {form.staff.length === 0 ? (
             <p className="text-sm text-slate-500">No staff assigned yet.</p>

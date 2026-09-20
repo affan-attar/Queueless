@@ -33,12 +33,14 @@ export function AuthProvider({ children }) {
     const nextUser = { id: user_id, role, full_name }
     localStorage.setItem('ql_user', JSON.stringify(nextUser))
     setUser(nextUser)
+    window.dispatchEvent(new Event('ql-auth-changed'))
   }
 
   function logout() {
     localStorage.removeItem('ql_access_token')
     localStorage.removeItem('ql_user')
     setUser(null)
+    window.dispatchEvent(new Event('ql-auth-changed'))
   }
 
   return (
