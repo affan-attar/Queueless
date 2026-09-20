@@ -23,22 +23,20 @@ export function ThemeProvider({ children }) {
   const [darkMode, setDarkModeState] = useState(() => {
     const saved = localStorage.getItem(storageKey)
     if (saved !== null) return saved === 'true'
-    return window.matchMedia('(prefers-color-scheme: dark)').matches
+    // Logged-out pages (login, register, forgot-password) always start
+    // light regardless of the device's system dark-mode setting, since
+    // AuthShell isn't fully dark-mode-styled. Only logged-in roles pick
+    // up a real preference, and only once the user explicitly sets one.
+    return false
   })
 
-  // Re-check which role's key to use whenever localStorage changes
-  // (e.g. after login/logout in this tab or another tab), so switching
-  // accounts picks up that role's own saved preference.
   useEffect(() => {
     function syncKey() {
       const newKey = getStorageKey()
       setStorageKey((prevKey) => {
         if (newKey === prevKey) return prevKey
         const saved = localStorage.getItem(newKey)
-        const nextDark =
-          saved !== null
-            ? saved === 'true'
-            : window.matchMedia('(prefers-color-scheme: dark)').matches
+        const nextDark = saved !== null ? saved === 'true' : false
         setDarkModeState(nextDark)
         return newKey
       })
