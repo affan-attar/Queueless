@@ -1,10 +1,31 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <meta name="color-scheme" content="light dark" />
     <meta charset="UTF-8" />
+    <meta name="color-scheme" content="light" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>QueueLess — Skip the line, not your turn</title>
+    <style>
+      :root {
+        color-scheme: light;
+      }
+      :root.dark {
+        color-scheme: dark;
+      }
+    </style>
+    <script>
+      (function () {
+        try {
+          var raw = localStorage.getItem('ql_user');
+          var role = raw ? (JSON.parse(raw) || {}).role : null;
+          if (role && localStorage.getItem('darkMode:' + role) === 'true') {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+        } catch (e) {}
+      })();
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link
       href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap"

@@ -2,6 +2,8 @@ import { createContext, useContext, useEffect, useState } from 'react'
 
 const ThemeContext = createContext(null)
 
+const GUEST_KEY = 'darkMode:guest'
+
 function getStorageKey() {
   try {
     const raw = localStorage.getItem('ql_user')
@@ -12,34 +14,40 @@ function getStorageKey() {
       }
     }
   } catch {
-    // fall through to default key below
+    // fall through to guest key below
   }
-  return 'darkMode:guest'
+  return GUEST_KEY
+}
+
+function readSaved(key) {
+  // Logged-out pages (login, register, forgot-password) are always light,
+  // regardless of any stale value or the device's system setting.
+  if (key === GUEST_KEY) return false
+  try {
+    return localStorage.getItem(key) === 'true'
+  } catch {
+    return false
+  }
 }
 
 export function ThemeProvider({ children }) {
   const [storageKey, setStorageKey] = useState(getStorageKey)
+  const [darkMode, setDarkModeState] = useState(() => readSaved(storageKey))
 
-  const [darkMode, setDarkModeState] = useState(() => {
-    const saved = localStorage.getItem(storageKey)
-    if (saved !== null) return saved === 'true'
-    // Logged-out pages (login, register, forgot-password) always start
-    // light regardless of the device's system dark-mode setting, since
-    // AuthShell isn't fully dark-mode-styled. Only logged-in roles pick
-    // up a real preference, and only once the user explicitly sets one.
-    return false
-  })
+  // Remove any stale guest value left behind by older versions.
+  useEffect(() => {
+    try {
+      localStorage.removeItem(GUEST_KEY)
+    } catch {
+      // ignore
+    }
+  }, [])
 
+  // Re-evaluate which role's key applies when auth changes.
   useEffect(() => {
     function syncKey() {
       const newKey = getStorageKey()
-      setStorageKey((prevKey) => {
-        if (newKey === prevKey) return prevKey
-        const saved = localStorage.getItem(newKey)
-        const nextDark = saved !== null ? saved === 'true' : false
-        setDarkModeState(nextDark)
-        return newKey
-      })
+      setStorageKey((prevKey) => (prevKey === newKey ? prevKey : newKey))
     }
 
     window.addEventListener('storage', syncKey)
@@ -50,13 +58,24 @@ export function ThemeProvider({ children }) {
     }
   }, [])
 
+  // Load the saved preference whenever the active key changes.
+  useEffect(() => {
+    setDarkModeState(readSaved(storageKey))
+  }, [storageKey])
+
+  // Reflect state on <html>.
   useEffect(() => {
     document.documentElement.classList.toggle('dark', darkMode)
-    localStorage.setItem(storageKey, darkMode)
-  }, [darkMode, storageKey])
+  }, [darkMode])
 
   function setDarkMode(value) {
     setDarkModeState(value)
+    if (storageKey === GUEST_KEY) return // guests are never persisted
+    try {
+      localStorage.setItem(storageKey, String(value))
+    } catch {
+      // storage unavailable; preference lasts for this session only
+    }
   }
 
   return (
